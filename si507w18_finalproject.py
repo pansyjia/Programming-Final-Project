@@ -193,7 +193,7 @@ def init_db_tables():
             'Name' TEXT NOT NULL,
             'Rating' TEXT,
             'ReviewCount' TEXT,
-            'PriceLevel' TEXT,
+            'PriceRange' TEXT,
             'PageURL' TEXT,
             'Street' TEXT,
             'City' TEXT,
