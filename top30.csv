@@ -1,30 +1,31 @@
-The Lunch Room,4.5,345,42.2845117547417,-83.7464183806924
-Pacific Rim,4.0,381,42.27981,-83.74937
-Frita Batidos,4.0,1288,42.2803651,-83.7491532
-Mani Osteria & Bar,4.0,611,42.2795793749763,-83.744244702611
-Zingerman's Delicatessen,4.0,1674,42.2844740041972,-83.7452775306885
-The Chop House,4.0,329,42.2787453979254,-83.7487088888884
-Metzger's German Restaurant,4.0,178,42.293025,-83.839377
-Sava's,4.0,801,42.279691,-83.741139
-Jerusalem Garden,4.0,140,42.2792053222656,-83.7454223632812
-Gandy Dancer,3.5,336,42.2872135476824,-83.7416808912894
-Aventura,4.0,534,42.28026,-83.746473
-Jolly Pumpkin Cafe & Brewery - Ann Arbor,4.0,770,42.2788765570889,-83.7485352158546
-Afternoon Delight,4.0,304,42.2796135,-83.7467957
-Cafe Zola,3.5,634,42.2806273,-83.7488206
-Vinology Wine Bar & Restaurant,4.0,372,42.281052,-83.7486748
-Tomukun Korean Barbeque,4.0,269,42.2795502,-83.7427918
-The West End Grill,4.0,79,42.27982,-83.74959
-Zingerman's Roadhouse,3.5,969,42.2804461,-83.7805119
-Grizzly Peak Brewing Company,3.5,452,42.2806289,-83.7488893
-The Earle Restaurant,3.5,235,42.2803591,-83.7488956
-Mediterrano,4.0,106,42.2449194,-83.7393949
-Logan Restaurant,4.0,211,42.2802391052246,-83.7493438720703
-Palm Palace,3.5,224,42.25342,-83.6813
-Isalita,4.0,401,42.2794618,-83.7444065
-Knight's Steak House,4.0,182,42.28537,-83.77806
-Taste Kitchen,4.0,145,42.2795716828378,-83.7423401932133
-NeoPapalis,4.5,252,42.2775307,-83.7428818
-Gratzi,3.5,295,42.2786179,-83.7488327
-Zingerman's Delicatessen,4.0,1674,42.2844740041972,-83.7452775306885
-Cardamom,4.0,382,42.298577940426,-83.7214592574346
+Restaurant,TripA_Rating,TripA_ReviewCount,Yelp_Rating,Yelp_ReviewCount,Phone,Transaction
+The Lunch Room,4.5,128,4.5,345,+17342248859,[]
+Pacific Rim,4.5,337,4.0,380,+17346629303,[]
+Frita Batidos,4.5,320,4.0,1289,+17347612882,[]
+Mani Osteria & Bar,4.5,491,4.0,612,+17347696700,[]
+Zingerman's Delicatessen,4.5,"1,703",4.0,1674,+17346633354,[]
+The Chop House,4.5,330,4.0,330,+18884563463,[]
+Metzger's German Restaurant,4.5,305,4.0,178,+17346688987,[]
+Sava's,4.5,656,4.0,804,+17346232233,"['delivery', 'restaurant_reservation']"
+Jerusalem Garden,4.5,259,4.0,140,+17349955060,"['pickup', 'delivery']"
+Gandy Dancer,4,678,3.5,336,+17347690592,[]
+Aventura,4.5,273,4.0,535,+17343693153,['restaurant_reservation']
+Jolly Pumpkin Cafe & Brewery - Ann Arbor,4,458,4.0,771,+17349132730,[]
+Cafe Zola,4,403,3.5,635,+17347692020,[]
+Afternoon Delight,4.5,162,4.0,305,+17346657513,[]
+Vinology Wine Bar & Restaurant,4.5,241,4.0,373,+17342229841,[]
+Tomukun Korean Barbeque,4.5,167,4.0,270,+17343692602,[]
+The West End Grill,4.5,134,4.0,79,+17347476260,[]
+Zingerman's Roadhouse,4,"1,101",3.5,969,+17346633663,[]
+Grizzly Peak Brewing Company,4,396,3.5,453,+17347417325,[]
+The Earle Restaurant,4,253,3.5,235,+17349940211,[]
+Mediterrano,4.5,209,4.0,107,+17343329700,['restaurant_reservation']
+Logan Restaurant,4.5,167,4.0,211,+17343272312,[]
+Palm Palace,4.5,213,3.5,222,+17346060706,"['pickup', 'delivery']"
+Isalita,4.5,162,4.0,402,+17342137400,[]
+Knight's Steak House,4,241,4.0,182,+17346658644,['restaurant_reservation']
+Taste Kitchen,4.5,89,4.0,145,+17343694241,['restaurant_reservation']
+NeoPapalis,4.5,106,4.5,252,+17349292227,[]
+Gratzi,4,471,3.5,295,+18884563463,['restaurant_reservation']
+Zingerman's Delicatessen,4,418,4.0,1674,+17346633354,[]
+Cardamom,4,143,4.0,382,+17346622877,[]
