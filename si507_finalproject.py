@@ -562,10 +562,10 @@ def plot_review():
 
 #——————————————————
 init_db_tables()
-# insert_data()
+insert_data()
 insert_csv(CSVFILE)
-# update_tables()
+update_tables()
 # plot_rests_map()
 # plot_ratings()
 # plot_pie()
-plot_review()
+# plot_review()
