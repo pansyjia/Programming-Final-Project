@@ -7,8 +7,8 @@ import secrets
 import sqlite3
 import json
 import csv
-# import plotly.plotly as py
-# import plotly.graph_objs as go
+import plotly.plotly as py
+import plotly.graph_objs as go
 from bs4 import BeautifulSoup
 
 CLIENT_ID = secrets.client_id
@@ -154,10 +154,10 @@ def get_from_yelp(rest_name):
 # use the names of the top 30 restaurants in TripAdvisor to
 top30 = get_rest_info("")
 yelp_list = []
-yelp_list.append(("Restaurant", "TripA_Rating", "TripA_ReviewCount", "Yelp_Rating", "Yelp_ReviewCount", "Phone", "Transaction"))
-for rest in top30 :
+yelp_list.append(("Restaurant", "TripA_Rating", "TripA_ReviewCount", "Yelp_Rating", "Yelp_ReviewCount", "Phone", "Transaction", "Latitude", "longitude"))
+for rest in top30:
     yelp_info = get_from_yelp(rest.name)["businesses"][0]
-    yelp_list.append((rest.name, rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["transactions"]))
+    yelp_list.append((rest.name, rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["transactions"], yelp_info["coordinates"]["latitude"], yelp_info["coordinates"]["longitude"]))
 
 with open('top30.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
@@ -221,7 +221,9 @@ def init_db_tables():
             'Yelp_Rating' INTEGER,
             'Yelp_ReviewCount' INTEGER,
             "Phone" TEXT,
-            "Transaction" TEXT
+            "Transaction" TEXT,
+            "Latitude" INTEGER,
+            "longitude" INTEGER
         );
     '''
     try:
@@ -229,8 +231,6 @@ def init_db_tables():
     except:
         print("Fail to create table.")
     conn.commit()
-
-
 
 
 def insert_data():
@@ -260,7 +260,6 @@ def insert_data():
 
 
 
-
 # insert file data into the db
 def insert_csv(FNAME):
     # connect to the db
@@ -279,9 +278,9 @@ def insert_csv(FNAME):
         for row in csv_data:
             insert_statement = '''
                 INSERT INTO "Ratings"
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
-            values = (None, row[0], None, row[1], row[2], row[3], row[4], row[5], row[6])
+            values = (None, row[0], None, row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
 
             cur.execute(insert_statement, values)
             conn.commit()
@@ -306,94 +305,92 @@ def update_tables():
     cur.execute(update_restaurantid)
     conn.commit()
 
+
+
+
 # Plotly
-# def plot_restaurants(rest_list):
-#     rest_list =
-#
-#     lat_vals = []
-#     lon_vals = []
-#     text_vals = []
-#
-#     #store data in lat, lon, and text lists
-#     for rest in rest_list:
-#         google_places_api = secrets.google_places_key
-#         google_places_url = "https://maps.googleapis.com/maps/api/place/textsearch/json?query={}&tyepe={}&key={}".format(site.name, site.type, google_places_api)
-#
-#         google_results = make_request_using_cache(url = google_places_url)
-#         google_results_dict = json.loads(google_results)
-#         # if len(google_results) != 0 and site.name != None:
-#         try:
-#             site_lat = google_results_dict["results"][0]["geometry"]["location"]["lat"]
-#             site_lon = google_results_dict["results"][0]["geometry"]["location"]["lng"]
-#
-#             lat_vals.append(site_lat)
-#             lon_vals.append(site_lon)
-#             text_vals.append(site.name)
-#         except:
-#             print("No result.")
-#
-#         # create data object
-#         data = [dict(
-#               type = 'scattergeo',
-#               locationmode = 'USA-states',
-#               lon = lon_vals,
-#               lat = lat_vals,
-#               text = text_vals,
-#               mode = 'markers',
-#               marker = dict(
-#                    size = 20,
-#                    symbol = 'star',
-#                    color = 'red'
-#             ))]
-#
-#         # scaling and centering the map
-#         min_lat = 10000
-#         max_lat = -10000
-#         min_lon = 10000
-#         max_lon = -10000
-#
-#         for str_v in lat_vals:
-#             v = float(str_v)
-#             if v < min_lat:
-#                 min_lat = v
-#             if v > max_lat:
-#                 max_lat = v
-#         for str_v in lon_vals:
-#             v = float(str_v)
-#             if v < min_lon:
-#                 min_lon = v
-#             if v > max_lon:
-#                 max_lon = v
-#
-#         # fix padding problem
-#         max_range = max(abs(max_lat - min_lat), abs(max_lon - min_lon))
-#         padding = max_range * .10
-#         lat_axis = [min_lat - padding, max_lat + padding]
-#         lon_axis = [min_lon - padding, max_lon + padding]
-#
-#         center_lat = (max_lat+min_lat) / 2
-#         center_lon = (max_lon+min_lon) / 2
-#
-#         # create the layout object
-#         layout = dict(
-#                 title = 'National Sites in ' + state_abbr.upper(),
-#                 geo = dict(
-#                      scope='usa',
-#                      projection=dict( type='albers usa' ),
-#                      showland = True,
-#                      landcolor = "rgb(250, 250, 250)",
-#                      subunitcolor = "rgb(100, 217, 217)",
-#                      countrycolor = "rgb(217, 100, 217)",
-#                      lataxis = {'range': lat_axis},
-#                      lonaxis = {'range': lon_axis},
-#                      center= {'lat': center_lat, 'lon': center_lon },
-#                      countrywidth = 3,
-#                      subunitwidth = 3
-#                  ),
-#         )
-#
-#         fig = dict(data=data, layout=layout)
-#         py.plot(fig, validate=False, filename='usa - national_sites')
+def plot_restaurants():
+    try:
+        with open('top30.csv', 'r') as csv_file:
+            csv_data = csv.reader(csv_file)
+            next(csv_data)
+
+            #store data in lat, lon, and text lists
+            lat_vals = []
+            lon_vals = []
+            text_vals = []
+
+            for row in csv_data:
+                lat_vals.append(row[7])
+                lon_vals.append(row[8])
+                text_vals.append(row[0])
+    except:
+        print("Fail to read top 30 geographical data.")
+        pass
+
+
+    # create data object
+    data = [dict(
+              type = 'scattergeo',
+              locationmode = 'USA-states',
+              lon = lon_vals,
+              lat = lat_vals,
+              text = text_vals,
+              mode = 'markers',
+              marker = dict(
+                   size = 20,
+                   symbol = 'star',
+                   color = 'red'
+        ))]
+
+    # scaling and centering the map
+    min_lat = 10000
+    max_lat = -10000
+    min_lon = 10000
+    max_lon = -10000
+
+    for str_v in lat_vals:
+        v = float(str_v)
+        if v < min_lat:
+            min_lat = v
+        if v > max_lat:
+            max_lat = v
+    for str_v in lon_vals:
+        v = float(str_v)
+        if v < min_lon:
+            min_lon = v
+        if v > max_lon:
+            max_lon = v
+
+    # fix padding problem
+    max_range = max(abs(max_lat - min_lat), abs(max_lon - min_lon))
+    padding = max_range * .10
+    lat_axis = [min_lat - padding, max_lat + padding]
+    lon_axis = [min_lon - padding, max_lon + padding]
+
+    center_lat = (max_lat+min_lat) / 2
+    center_lon = (max_lon+min_lon) / 2
+
+    # create the layout object
+    layout = dict(
+                title = 'Top 30 Restaurants in Ann Arbor',
+                geo = dict(
+                     scope='usa',
+                     projection=dict( type='albers usa' ),
+                     showland = True,
+                     landcolor = "rgb(250, 250, 250)",
+                     subunitcolor = "rgb(100, 217, 217)",
+                     countrycolor = "rgb(217, 100, 217)",
+                     lataxis = {'range': lat_axis},
+                     lonaxis = {'range': lon_axis},
+                     center= {'lat': center_lat, 'lon': center_lon },
+                     countrywidth = 3,
+                     subunitwidth = 3
+                ),
+    )
+
+    fig = dict(data=data, layout=layout)
+    py.plot(fig, validate=False, filename='Ann Arbor - top30 restaurants')
 
 
 #--------------bar chart--------------
@@ -439,3 +436,4 @@ init_db_tables()
 insert_data()
 insert_csv(CSVFILE)
 update_tables()
+plot_restaurants()
