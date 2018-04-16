@@ -16,20 +16,20 @@ API_KEY = secrets.api_key
 
 # ---------- Class Object -----
 class Restaurant():
-    def __init__(self, name, rating1="0", reviews="0", price="0", url=None, lat="0", lon="0"):
+    def __init__(self, name, rating1="0", price="0", url=None):
         self.name = name
         self.rating1 = rating1
-        self.reviews = reviews
         self.price = price
         self.url = url
 
+        self.reviews = "0"
         self.rating2 = "0"
         self.street = "123 Main St."
         self.city = "Ann Arbor"
         self.state = "MI"
         self.zip = "11111"
-        self.lat = lat
-        self.lng = lon
+        self.lat = "0"
+        self.lng = "0"
 
     def __str__(self):
         rest_str = "{}: {}, {}, {}({})".format(self.name, self.street, self.city, self.state, self.zip)
@@ -38,7 +38,7 @@ class Restaurant():
 
 # ---------- Caching ----------
 CACHE_TRIPA = "cache_tripa.json"
-CACHE_YELP = "cache_yelp.txt"
+CACHE_YELP = "cache_yelp.json"
 
 try:
     cache_tripa_file = open(CACHE_TRIPA, "r")
@@ -50,6 +50,25 @@ except:
 
 def get_unique_key(url):
     return url
+
+def make_request_using_cache_crawl(url):
+    headers = {'Authorization': f"Bearer {API_KEY}"}
+    unique_ident = get_unique_key(url)
+
+    if unique_ident in TRIPA_DICTION:
+        print("Fetching cached data...")
+        return TRIPA_DICTION[unique_ident]
+    else:
+        # make the request and cache the new data
+        print("Craling for new data...")
+        resp = requests.get(url, headers=headers)
+        TRIPA_DICTION[unique_ident] = resp.text # only store the html
+        dumped_json_cache_crawl = json.dumps(TRIPA_DICTION)
+        fw = open(CACHE_TRIPA,"w")
+        fw.write(dumped_json_cache_crawl)
+        fw.close() # Close the open file
+        return TRIPA_DICTION[unique_ident]
+
 
 
 
@@ -69,29 +88,11 @@ def params_unique_combination(baseurl, params):
     return baseurl + "_".join(res)
 
 
-def make_request_using_cache_crawl(url):
-    unique_ident = get_unique_key(url)
-
-    if unique_ident in TRIPA_DICTION:
-        print("Fetching cached data...")
-        return TRIPA_DICTION[unique_ident]
-    else:
-        # make the request and cache the new data
-        print("Craling for new data...")
-        resp = requests.get(url)
-        TRIPA_DICTION[unique_ident] = resp.text # only store the html
-        dumped_json_cache_crawl = json.dumps(TRIPA_DICTION)
-        fw = open(CACHE_TRIPA,"w")
-        fw.write(dumped_json_cache_crawl)
-        fw.close() # Close the open file
-        return TRIPA_DICTION[unique_ident]
-
-
 
 
 # # ---------- TripAdvisor Web Scraping & Crawling ----------
-def get_rest_info():
-    baseurl = "https://www.tripadvisor.com/Restaurants-g29556-Ann_Arbor_Michigan.html#EATERY_OVERVIEW_BOX"
+def get_rest_info(page=""):
+    baseurl = "https://www.tripadvisor.com/RestaurantSearch-g29556-{}-Ann_Arbor_Michigan.html#EATERY_LIST_CONTENTS".format(page)
     page_text = make_request_using_cache_crawl(baseurl)
     page_soup = BeautifulSoup(page_text, "html.parser")
 
@@ -101,7 +102,6 @@ def get_rest_info():
         try:
             rest_name = rest.find(class_="property_title").text.replace("\n", "")
             rest_rating = rest.find(class_="ui_bubble_rating")["alt"].replace(" of 5 bubbles", "")
-            rest_reviews = rest.find(class_="reviewCount").text.replace(" reviews \n", "")
             rest_price = rest.find(class_="item price").string
             detail_url = "https://www.tripadvisor.com" + rest.find("a")["href"]
 
@@ -113,8 +113,6 @@ def get_rest_info():
             street_info = details_page_soup.find(class_ = "street-address").text
             zip_info = details_page_soup.find(class_ = "locality").text.split(", ")[1][3:8]
             rest_reviews = details_page_soup.find(property = "count").text
-            # lat = details_page_soup.find(class_ = "prv_map").find('img')['src'][-9:]
-            # lon = details_page_soup.find(class_ = "prv_map").find('img')['src'][-18:-10]
 
             restaurant_ins.street = street_info
             restaurant_ins.zip = zip_info
@@ -145,23 +143,21 @@ def get_from_yelp(rest_name):
         return YELP_DICTION[unique_id]
     else:
         print("Making a yelp request for new data...")
-        yelp_json_list = [] ## a list of dict, write into a txt
         response = requests.get(base_url, params=parameters, headers=headers)
-        resp_dict = json.loads(response.text)
-        yelp_json_list.append(resp_dict)
+        YELP_DICTION[unique_id] = json.loads(response.text)
         write_file = open(CACHE_YELP, 'w+')
-        write_file.write(json.dumps(yelp_json_list))
+        write_file.write(json.dumps(YELP_DICTION))
         write_file.close()
-        return resp_dict
+        return YELP_DICTION[unique_id]
 
 
 # use the names of the top 30 restaurants in TripAdvisor to
-top30 = get_rest_info()[:30]
+top30 = get_rest_info("")
 yelp_list = []
 yelp_list.append(("Restaurant", "TripA_Rating", "TripA_ReviewCount", "Yelp_Rating", "Yelp_ReviewCount", "Phone", "Transaction"))
 for rest in top30 :
     yelp_info = get_from_yelp(rest.name)["businesses"][0]
-    yelp_list.append((yelp_info["name"], rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["transactions"]))
+    yelp_list.append((rest.name, rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["transactions"]))
 
 with open('top30.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
@@ -249,7 +245,8 @@ def insert_data():
     # json_data = json_file.read()
     # json_dict = json.loads(json_data)
 
-    restaurants = get_rest_info()[:100]
+
+    restaurants = get_rest_info("")+get_rest_info("oa60")+get_rest_info("oa90")
 
     for rest in restaurants:
         insert_statement = '''
@@ -309,7 +306,7 @@ def update_tables():
     cur.execute(update_restaurantid)
     conn.commit()
 
-# _________________________________________________
+# Plotly
 # def plot_restaurants(rest_list):
 #     rest_list =
 #
