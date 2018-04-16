@@ -112,7 +112,7 @@ def get_rest_info(page=""):
             details_page_soup = BeautifulSoup(details_page_text, "html.parser")
             street_info = details_page_soup.find(class_ = "street-address").text
             zip_info = details_page_soup.find(class_ = "locality").text.split(", ")[1][3:8]
-            rest_reviews = details_page_soup.find(property = "count").text
+            rest_reviews = details_page_soup.find(property = "count").text.replace(",", "")
 
             restaurant_ins.street = street_info
             restaurant_ins.zip = zip_info
@@ -145,7 +145,7 @@ def get_from_yelp(rest_name):
         print("Making a yelp request for new data...")
         response = requests.get(base_url, params=parameters, headers=headers)
         YELP_DICTION[unique_id] = json.loads(response.text)
-        write_file = open(CACHE_YELP, 'w+')
+        write_file = open(CACHE_YELP, "w+")
         write_file.write(json.dumps(YELP_DICTION))
         write_file.close()
         return YELP_DICTION[unique_id]
@@ -159,7 +159,7 @@ for rest in top30:
     yelp_info = get_from_yelp(rest.name)["businesses"][0]
     yelp_list.append((rest.name, rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["transactions"], yelp_info["coordinates"]["latitude"], yelp_info["coordinates"]["longitude"]))
 
-with open('top30.csv', 'w', newline='') as csvfile:
+with open("top30.csv", "w", newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
     writer.writerows(yelp_list)
 
@@ -217,7 +217,7 @@ def init_db_tables():
             'Restaurant' TEXT,
             'RestaurantId' INTEGER,
             'TripA_Rating' INTEGER,
-            'TripA_ReviewCount' TEXT,
+            'TripA_ReviewCount' INTEGER,
             'Yelp_Rating' INTEGER,
             'Yelp_ReviewCount' INTEGER,
             "Phone" TEXT,
@@ -270,7 +270,7 @@ def insert_csv(FNAME):
         print("Fail to connect to the database")
 
     #read data from csv
-    with open(FNAME, 'r') as csv_file:
+    with open(FNAME, "r") as csv_file:
         csv_data = csv.reader(csv_file)
 
         next(csv_data)
@@ -308,10 +308,10 @@ def update_tables():
 
 
 
-# Plotly
-def plot_restaurants():
+#--------- Plotly: scatter map ----------------
+def plot_rests_map():
     try:
-        with open('top30.csv', 'r') as csv_file:
+        with open("top30.csv", "r") as csv_file:
             csv_data = csv.reader(csv_file)
             next(csv_data)
 
@@ -394,46 +394,178 @@ def plot_restaurants():
 
 
 #--------------bar chart--------------
-# x = ['Product A', 'Product B', 'Product C']
-# y = [20, 14, 23]
-# y2 = [16,12,27]
-#
-# trace1 = go.Bar(
-#     x=x,
-#     y=y,
-#     text=y,
-#     textposition = 'auto',
-#     marker=dict(
-#         color='rgb(158,202,225)',
-#         line=dict(
-#             color='rgb(8,48,107)',
-#             width=1.5),
-#         ),
-#     opacity=0.6
-# )
-#
-# trace2 = go.Bar(
-#     x=x,
-#     y=y2,
-#     text=y2,
-#     textposition = 'auto',
-#     marker=dict(
-#         color='rgb(58,200,225)',
-#         line=dict(
-#             color='rgb(8,48,107)',
-#             width=1.5),
-#         ),
-#     opacity=0.6
-# )
-#
-# data = [trace1,trace2]
-#
-# py.plot(data, filename='grouped-bar-direct-labels')
+def plot_ratings():
+    try:
+        with open("top30.csv", "r") as csv_file:
+            csv_data = csv.reader(csv_file)
+            next(csv_data)
+
+            #store data in lat, lon, and text lists
+            rest_name = []
+            tripa_rating = []
+            yelp_rating = []
+
+            for row in csv_data:
+                rest_name.append(row[0])
+                tripa_rating.append(row[1])
+                yelp_rating.append(row[3])
+    except:
+        print("Fail to read top 10 rating data.")
+        pass
 
 
-# create database & insert data
+    TripA = go.Bar(
+                x=rest_name,
+                y=tripa_rating,
+                text=tripa_rating,
+                textposition = 'auto',
+                marker=dict(
+                    color='rgb(158,202,225)',
+                    line=dict(
+                        color='rgb(8,48,107)',
+                        width=1.5),
+                        ),
+                        opacity=0.6
+            )
+
+    Yelp = go.Bar(
+                x=rest_name,
+                y=yelp_rating,
+                text=yelp_rating,
+                textposition = 'auto',
+                marker=dict(
+                    color='rgb(58,200,225)',
+                    line=dict(
+                        color='rgb(8,48,107)',
+                        width=1.5),
+                ),
+                opacity=0.6
+            )
+
+    data = [TripA,Yelp]
+
+    py.plot(data, filename='grouped-bar-direct-labels')
+
+
+#--------------bar chart--------------
+def plot_ratings():
+    try:
+        with open("top30.csv", "r") as csv_file:
+            csv_data = csv.reader(csv_file)
+            next(csv_data)
+
+            #store data in lists
+            rest_name = []
+            tripa_rating = []
+            yelp_rating = []
+
+            for row in csv_data:
+                rest_name.append(row[0])
+                tripa_rating.append(row[1])
+                yelp_rating.append(row[3])
+    except:
+        print("Fail to read top 10 rating data.")
+        pass
+
+
+    TripA = go.Bar(
+                x=rest_name,
+                y=tripa_rating,
+                text=tripa_rating,
+                textposition = 'auto',
+                marker=dict(
+                    color='rgb(158,202,225)',
+                    line=dict(
+                        color='rgb(8,48,107)',
+                        width=1.5),
+                        ),
+                        opacity=0.6
+            )
+
+    Yelp = go.Bar(
+                x=rest_name,
+                y=yelp_rating,
+                text=yelp_rating,
+                textposition = 'auto',
+                marker=dict(
+                    color='rgb(58,200,225)',
+                    line=dict(
+                        color='rgb(8,48,107)',
+                        width=1.5),
+                ),
+                opacity=0.6
+            )
+
+    data = [TripA,Yelp]
+
+    py.plot(data, filename='grouped-bar-direct-labels')
+
+
+
+#--------------pie chart--------------
+def plot_pie():
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print("Fail to connect db with pie chart. ")
+
+    statement = '''
+        SELECT PriceRange, COUNT(*)
+        FROM Restaurants
+        GROUP BY PriceRange
+        ORDER BY COUNT(*)
+    '''
+
+    cur = cur.execute(statement)
+    labels = []
+    values = []
+    for row in cur:
+        labels.append(row[0])
+        values.append(row[1])
+
+    trace = go.Pie(labels=labels, values=values)
+
+    py.plot([trace], filename='basic_pie_chart')
+
+
+
+#--------------pie chart--------------
+def plot_review():
+    try:
+        conn = sqlite3.connect(DBNAME)
+        cur = conn.cursor()
+    except:
+        print("Fail to connect db with bar chart. ")
+
+    statement = '''
+        SELECT Restaurant, TripA_ReviewCount, Yelp_ReviewCount
+        FROM Ratings
+        WHERE TripA_ReviewCount > 800 OR Yelp_ReviewCount > 800
+    '''
+
+    cur = cur.execute(statement)
+    x = []
+    y = []
+    for row in cur:
+        x.append(row[0])
+        if int(row[1]) > int(row[2]):
+            y.append(row[1])
+        else:
+            y.append(row[2])
+
+    data = [go.Bar(x=x, y=y)]
+
+    py.plot(data, filename='basic_bar')
+
+
+
+#——————————————————
 init_db_tables()
-insert_data()
+# insert_data()
 insert_csv(CSVFILE)
-update_tables()
-plot_restaurants()
+# update_tables()
+# plot_rests_map()
+# plot_ratings()
+# plot_pie()
+plot_review()
