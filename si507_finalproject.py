@@ -71,7 +71,6 @@ def make_request_using_cache_crawl(url):
 
 
 
-
 try:
     cache_yelp_file = open(CACHE_YELP, "r")
     cache_yelp_contents = cache_yelp_file.read()
@@ -86,7 +85,6 @@ def params_unique_combination(baseurl, params):
     for k in alphabetized_keys:
         res.append("{}-{}".format(k, params[k]))
     return baseurl + "_".join(res)
-
 
 
 
@@ -154,10 +152,10 @@ def get_from_yelp(rest_name):
 # use the names of the top 30 restaurants in TripAdvisor to
 top30 = get_rest_info("")
 yelp_list = []
-yelp_list.append(("Restaurant", "TripA_Rating", "TripA_ReviewCount", "Yelp_Rating", "Yelp_ReviewCount", "Phone", "Transaction", "Latitude", "longitude"))
+yelp_list.append(("Restaurant", "TripA_Rating", "TripA_ReviewCount", "Yelp_Rating", "Yelp_ReviewCount", "Phone", "Latitude", "longitude"))
 for rest in top30:
     yelp_info = get_from_yelp(rest.name)["businesses"][0]
-    yelp_list.append((rest.name, rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["transactions"], yelp_info["coordinates"]["latitude"], yelp_info["coordinates"]["longitude"]))
+    yelp_list.append((rest.name, rest.rating1, rest.reviews, yelp_info["rating"], yelp_info["review_count"], yelp_info["phone"], yelp_info["coordinates"]["latitude"], yelp_info["coordinates"]["longitude"]))
 
 with open("top30.csv", "w", newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
@@ -221,7 +219,6 @@ def init_db_tables():
             'Yelp_Rating' INTEGER,
             'Yelp_ReviewCount' INTEGER,
             "Phone" TEXT,
-            "Transaction" TEXT,
             "Latitude" INTEGER,
             "longitude" INTEGER
         );
@@ -231,6 +228,7 @@ def init_db_tables():
     except:
         print("Fail to create table.")
     conn.commit()
+    conn.close()
 
 
 def insert_data():
@@ -246,7 +244,7 @@ def insert_data():
     # json_dict = json.loads(json_data)
 
 
-    restaurants = get_rest_info("")+get_rest_info("oa60")+get_rest_info("oa90")
+    restaurants = get_rest_info("")+get_rest_info("oa60")+get_rest_info("oa90")+get_rest_info("oa120")[:10]
 
     for rest in restaurants:
         insert_statement = '''
@@ -257,6 +255,7 @@ def insert_data():
 
         cur.execute(insert_statement, values)
         conn.commit()
+        # conn.close()
 
 
 
@@ -278,12 +277,13 @@ def insert_csv(FNAME):
         for row in csv_data:
             insert_statement = '''
                 INSERT INTO "Ratings"
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             '''
-            values = (None, row[0], None, row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+            values = (None, row[0], None, row[1], row[2], row[3], row[4], row[5], row[6], row[7])
 
             cur.execute(insert_statement, values)
             conn.commit()
+            # conn.close()
 
 
 
@@ -315,15 +315,36 @@ def plot_rests_map():
             csv_data = csv.reader(csv_file)
             next(csv_data)
 
+        # try:
+        #     conn = sqlite3.connect(DBNAME)
+        #     cur = conn.cursor()
+        # except:
+        #     print("Fail to connect to the database")
+        #
+        # top30_street = '''
+        #     UPDATE Street
+        #     FROM Restaurants AS r
+        #         JOIN Ratings AS t ON r.Id = t.RestaurantId
+        #     GROUP BY r.Id
+        #     ORDER BY r.Id
+        #     LIMIT 30
+        # '''
+        #
+        # street_results = cur.execute(top30_street)
+        # street_list = []
+        # for i in street_results:
+        #     street_list.append(i[0])
+
+
             #store data in lat, lon, and text lists
             lat_vals = []
             lon_vals = []
             text_vals = []
 
             for row in csv_data:
-                lat_vals.append(row[7])
-                lon_vals.append(row[8])
-                text_vals.append(row[0])
+                lat_vals.append(row[6])
+                lon_vals.append(row[7])
+                text_vals.append((row[0], get_from_yelp(row[0])["businesses"][0]["location"]["address1"]))
     except:
         print("Fail to read top 30 geographical data.")
         pass
@@ -394,65 +415,64 @@ def plot_rests_map():
 
 
 #--------------bar chart--------------
-def plot_ratings():
-    try:
-        with open("top30.csv", "r") as csv_file:
-            csv_data = csv.reader(csv_file)
-            next(csv_data)
-
-            #store data in lat, lon, and text lists
-            rest_name = []
-            tripa_rating = []
-            yelp_rating = []
-
-            for row in csv_data:
-                rest_name.append(row[0])
-                tripa_rating.append(row[1])
-                yelp_rating.append(row[3])
-    except:
-        print("Fail to read top 10 rating data.")
-        pass
-
-
-    TripA = go.Bar(
-                x=rest_name,
-                y=tripa_rating,
-                text=tripa_rating,
-                textposition = 'auto',
-                marker=dict(
-                    color='rgb(158,202,225)',
-                    line=dict(
-                        color='rgb(8,48,107)',
-                        width=1.5),
-                        ),
-                        opacity=0.6
-            )
-
-    Yelp = go.Bar(
-                x=rest_name,
-                y=yelp_rating,
-                text=yelp_rating,
-                textposition = 'auto',
-                marker=dict(
-                    color='rgb(58,200,225)',
-                    line=dict(
-                        color='rgb(8,48,107)',
-                        width=1.5),
-                ),
-                opacity=0.6
-            )
-
-    data = [TripA,Yelp]
-
-    py.plot(data, filename='grouped-bar-direct-labels')
+# def plot_ratings():
+#     try:
+#         with open("top30.csv", "r") as csv_file:
+#             csv_data = csv.reader(csv_file)
+#             next(csv_data)
+#
+#             #store data in lat, lon, and text lists
+#             rest_name = []
+#             tripa_rating = []
+#             yelp_rating = []
+#
+#             for row in csv_data:
+#                 rest_name.append(row[0])
+#                 tripa_rating.append(row[1])
+#                 yelp_rating.append(row[3])
+#     except:
+#         print("Fail to read top 10 rating data.")
+#         pass
+#
+#
+#     TripA = go.Bar(
+#                 x=rest_name,
+#                 y=tripa_rating,
+#                 text=tripa_rating,
+#                 textposition = 'auto',
+#                 marker=dict(
+#                     color='rgb(158,202,225)',
+#                     line=dict(
+#                         color='rgb(8,48,107)',
+#                         width=1.5),
+#                         ),
+#                         opacity=0.6
+#             )
+#
+#     Yelp = go.Bar(
+#                 x=rest_name,
+#                 y=yelp_rating,
+#                 text=yelp_rating,
+#                 textposition = 'auto',
+#                 marker=dict(
+#                     color='rgb(58,200,225)',
+#                     line=dict(
+#                         color='rgb(8,48,107)',
+#                         width=1.5),
+#                 ),
+#                 opacity=0.6
+#             )
+#
+#     data = [TripA,Yelp]
+#
+#     py.plot(data, filename='grouped-bar-direct-labels')
 
 
 #--------------bar chart--------------
 def plot_ratings():
     try:
         with open("top30.csv", "r") as csv_file:
-            csv_data = csv.reader(csv_file)
-            next(csv_data)
+            csv_data = csv_file.readlines()[1:11]
 
             #store data in lists
             rest_name = []
@@ -460,9 +480,10 @@ def plot_ratings():
             yelp_rating = []
 
             for row in csv_data:
-                rest_name.append(row[0])
-                tripa_rating.append(row[1])
-                yelp_rating.append(row[3])
+                data_list = row.split(",")
+                rest_name.append(data_list[0])
+                tripa_rating.append(data_list[1])
+                yelp_rating.append(data_list[3])
     except:
         print("Fail to read top 10 rating data.")
         pass
@@ -503,7 +524,7 @@ def plot_ratings():
 
 
 #--------------pie chart--------------
-def plot_pie():
+def plot_price():
     try:
         conn = sqlite3.connect(DBNAME)
         cur = conn.cursor()
@@ -559,13 +580,59 @@ def plot_review():
     py.plot(data, filename='basic_bar')
 
 
+#------------interactions-------------
+# interactions
+# if __name__ == "__main__":
+#     user_input = prompt()
+#     result_set = []
+#
+#     while "exit" not in user_input:
+#         if check_if_nearby_or_map(user_input) != True:
+#             if user_input == "help":
+#                 help_command()
+#             elif "list" in user_input:
+#                 if len(user_input) <= 5:
+#                     print("Please input a two-letter state abbreviation following 'list '")
+#                     user_input = prompt()
+#                 else:
+#                     try:
+#                         state_abbr = user_input[5:7]
+#                         result_set = list_command(state_abbr)
+#                     except:
+#                         print("Invalid input.")
+#         else:
+#             # no list, can't execute nearby
+#             if result_set == []:
+#                 print("No search result. You can start with entering 'help'. ")
+#                 user_input = prompt()
+#                 continue
+#             # list results available
+#             else:
+#                 if "nearby" in user_input:
+#                     try:
+#                         index_num = int(user_input[7:]) - 1
+#                         site = result_set[index_num]
+#                         nearby_command(site)
+#                     except:
+#                         print("Invalid input.")
+#                 elif user_input == "map":
+#                     try:
+#                         map_command(site)
+#                     except:
+#                         print("Please use the 'nearby <result_number>' command to choose a site first.")
+#
+#         user_input = prompt()
+#
+#     print("Bye!")
+
 
 #——————————————————
-init_db_tables()
-insert_data()
-insert_csv(CSVFILE)
-update_tables()
+# if __name__=="__main__":
+    # init_db_tables()
+    # insert_data()
+    # insert_csv(CSVFILE)
+    # update_tables()
 # plot_rests_map()
-# plot_ratings()
-# plot_pie()
-# plot_review()
+    # plot_ratings()
+    # plot_price()
+    # plot_review()
