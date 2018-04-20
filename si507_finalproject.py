@@ -527,8 +527,8 @@ def plot_review():
 #------------ interactions -------------
 # get input
 def prompt():
-    prompt = input("Hi! Welcome to Ann Arbor Restaurants Guide. Please enter your command or enter 'help' for options:  ")
-    return prompt.lower()
+    user_input = input("Please enter your command or enter 'help' for options:  ")
+    return user_input.lower()
 
 
 # define commands
@@ -633,39 +633,39 @@ def str_output(str_result):
 
 # handle user input
 def interact_prompt():
-    user_input = prompt()
-    result_set = []
+    user_input = input("Hi! Welcome to Ann Arbor Restaurants Guide. Please enter your command or enter 'help' for options:  ")
 
     while "exit" not in user_input:
         if user_input == "help":
             help_command()
         elif "tripadvisor" in user_input:
-            if int(user_input.split(" ")[-1]) > 30 or len(user_input.split(" ")) != 2:
-                print("Please input a number no bigger than 30 following 'tripadvisor':  ")
+            if len(user_input) <= 12:
+                print("Invalid input.\n")
+            elif int(user_input.split()[-1]) > 30:
+                print("Invalid input.\n")
             else:
                 try:
-                    result_set = tripa_command()
-                    row_format = "{0:2} {1:20} {2:15} {3:10} {4:15} {5:15}"
+                    result_set=tripa_command(int(user_input.split()[-1]))
+                    row_format = "{0:2} {1:15} {2:15} {3:15} {4:15} {5:15}"
                     index = 1
                     for row in result_set:
-                        print(row_format.format(index, row[0], str_output(row[1]), row[2], str_output(row[3]), str_output(row[4])))
+                        print(row_format.format(index, str_output(row[0]), str_output(row[1]), row[2], str_output(row[3]), str_output(row[4])))
                         index += 1
-                    return result_set
                 except:
                     print("tripa error. ")
-                    pass
         elif "yelp" in user_input:
-            if int(user_input.split(" ")[-1]) > 30 or len(user_input.split(" ")) != 2:
-                print("Please input a number no bigger than 30 following 'yelp':  ")
+            if len(user_input) <= 5:
+                print("Invalid input.\n")
+            elif int(user_input.split()[-1]) > 30:
+                print("Invalid input.\n")
             else:
                 try:
-                    result_set = yelp_command()
-                    row_format = "{0:2} {1:20} {2:15} {3:10} {4:15} {5:15}"
+                    result_set = yelp_command(int(user_input.split()[-1]))
+                    row_format = "{0:2} {1:15} {2:15} {3:15} {4:15} {5:15}"
                     index = 1
                     for row in result_set:
-                        print(row_format.format(index, row[0], str_output(row[1]), row[2], str_output(row[3]), str_output(row[4])))
+                        print(row_format.format(index, str_output(row[0]), str_output(row[1]), row[2], str_output(row[3]), str_output(row[4])))
                         index += 1
-                    return result_set
                 except:
                     print("yelp error. ")
         elif "map" in user_input:
@@ -693,7 +693,7 @@ def interact_prompt():
                 print("plot review error.")
                 pass
 
-        user_input = input("Please enter your command or enter 'help' for options: ")
+        user_input = prompt()
 
     print("Bye! Bon Appetit! ")
 
