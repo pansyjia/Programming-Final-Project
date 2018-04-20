@@ -1,6 +1,6 @@
 ## SI507_FinalProject_README
-# Section 009 (Jie-wei Wu)
-# Siyu Jia
+### Section 009 (Jie-wei Wu)
+### Siyu Jia
 ## 
 
 ## 1. Overview
