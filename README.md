@@ -22,7 +22,8 @@ The information of 30 restaurants has been cached in a JSON file named "cache_ye
 
 ## 3. Instructions
 To successfully run this program, you need to do the following things:
-1) IMPORTANT: get a client id and API key from Yelp. You can apply for authentication from Yelp API  using the link below:
+
+1) IMPORTANT: get a client id and API key from Yelp. You can apply for authentication from Yelp API  using the link below or find my secret data in the file that I submitted through Canvas.
      "https://www.yelp.com/developers/v3/manage_app"
 2) Create a "secrets.py" file and put your client id and API key into it. The content format is like this:
 client_id = ""
