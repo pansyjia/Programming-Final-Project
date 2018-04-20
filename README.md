@@ -1,6 +1,7 @@
 ## SI507_FinalProject_README
-## Section 009 (Jie-wei Wu)
-## Siyu Jia
+# Section 009 (Jie-wei Wu)
+# Siyu Jia
+## 
 
 ## 1. Overview
 The goal of the project is to use python to get data from TripAdvisor and Yelp on Ann Arbor's restaurant information(**Note: 100 restaurants from TripAdvisor and 30 restaurants from Yelp respectively**) and store the data into a database for query and data visualization. There will be 4 graphs including a scatter map built by Plotly for users to interact with, especially to compare ratings.
